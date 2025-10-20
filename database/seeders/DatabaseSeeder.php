@@ -15,9 +15,21 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Run dashboard seeders
+        $this->call([
+            TaskStatusSeeder::class,
+            TaskPrioritySeeder::class,
+            ProjectSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }
