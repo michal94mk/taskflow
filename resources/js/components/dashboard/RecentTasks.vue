@@ -4,7 +4,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/vue3';
 import { Calendar, Clock, User } from 'lucide-vue-next';
-import { computed } from 'vue';
 
 interface Task {
     id: number;
@@ -25,11 +24,9 @@ interface Task {
     };
 }
 
-interface Props {
+defineProps<{
     tasks: Task[];
-}
-
-const props = defineProps<Props>();
+}>();
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pl-PL', {
