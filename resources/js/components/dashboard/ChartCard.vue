@@ -13,6 +13,10 @@ import {
     PointElement,
     LineElement,
     Filler,
+    DoughnutController,
+    PieController,
+    BarController,
+    LineController,
 } from 'chart.js';
 
 // Register Chart.js components
@@ -26,7 +30,11 @@ ChartJS.register(
     ArcElement,
     PointElement,
     LineElement,
-    Filler
+    Filler,
+    DoughnutController,
+    PieController,
+    BarController,
+    LineController
 );
 
 interface ChartData {
