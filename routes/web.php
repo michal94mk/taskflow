@@ -13,6 +13,7 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('projects', App\Http\Controllers\ProjectController::class);
+    Route::resource('tasks', App\Http\Controllers\TaskController::class);
 });
 
 require __DIR__.'/settings.php';

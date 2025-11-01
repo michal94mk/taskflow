@@ -9,28 +9,28 @@ const quickActions = [
         title: 'New Task',
         description: 'Create a new task',
         icon: Plus,
-        href: '#', // TODO: Link to task creation
+        href: '/tasks/create',
         variant: 'default' as const,
     },
     {
         title: 'New Project',
         description: 'Create a new project',
         icon: FolderPlus,
-        href: '#', // TODO: Link to project creation
+        href: '/projects/create',
         variant: 'outline' as const,
     },
     {
         title: 'View All Tasks',
         description: 'See all your tasks',
         icon: ListTodo,
-        href: '#', // TODO: Link to tasks index
+        href: '/tasks',
         variant: 'outline' as const,
     },
     {
         title: 'View All Projects',
         description: 'See all your projects',
         icon: FolderOpen,
-        href: '#', // TODO: Link to projects index
+        href: '/projects',
         variant: 'outline' as const,
     },
 ];
