@@ -86,9 +86,9 @@ const applyFilters = () => {
 
 const clearFilters = () => {
     searchQuery.value = '';
-    selectedProject.value = '';
-    selectedStatus.value = '';
-    selectedPriority.value = '';
+    selectedProject.value = undefined;
+    selectedStatus.value = undefined;
+    selectedPriority.value = undefined;
     router.get('/tasks');
 };
 
@@ -172,7 +172,6 @@ const deleteTask = (id: number) => {
                                     <SelectValue placeholder="All projects" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All projects</SelectItem>
                                     <SelectItem v-for="project in projects" :key="project.id" :value="String(project.id)">
                                         {{ project.name }}
                                     </SelectItem>
@@ -188,7 +187,6 @@ const deleteTask = (id: number) => {
                                     <SelectValue placeholder="All statuses" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All statuses</SelectItem>
                                     <SelectItem v-for="status in statuses" :key="status.id" :value="String(status.id)">
                                         {{ status.name }}
                                     </SelectItem>
@@ -204,7 +202,6 @@ const deleteTask = (id: number) => {
                                     <SelectValue placeholder="All priorities" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All priorities</SelectItem>
                                     <SelectItem v-for="priority in priorities" :key="priority.id" :value="String(priority.id)">
                                         {{ priority.name }}
                                     </SelectItem>
