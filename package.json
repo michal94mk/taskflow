@@ -33,6 +33,7 @@
     "dependencies": {
         "@inertiajs/vue3": "^2.1.0",
         "@tailwindcss/vite": "^4.1.14",
+        "@types/sortablejs": "^1.15.9",
         "@vueuse/core": "^12.8.2",
         "chart.js": "^4.5.1",
         "class-variance-authority": "^0.7.1",
@@ -43,11 +44,12 @@
         "pusher-js": "^8.4.0",
         "quill": "^2.0.3",
         "reka-ui": "^2.4.1",
+        "sortablejs": "^1.15.6",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.14",
         "tw-animate-css": "^1.2.5",
         "vue": "^3.5.13",
-        "vuedraggable": "^2.24.3"
+        "vuedraggable": "^4.1.0"
     },
     "optionalDependencies": {
         "@rollup/rollup-linux-x64-gnu": "4.9.5",

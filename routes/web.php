@@ -14,6 +14,10 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('projects', App\Http\Controllers\ProjectController::class);
     Route::resource('tasks', App\Http\Controllers\TaskController::class);
+    
+    // Kanban Board
+    Route::get('kanban', [App\Http\Controllers\KanbanController::class, 'index'])->name('kanban.index');
+    Route::patch('kanban/{task}/status', [App\Http\Controllers\KanbanController::class, 'updateStatus'])->name('kanban.updateStatus');
 });
 
 require __DIR__.'/settings.php';
