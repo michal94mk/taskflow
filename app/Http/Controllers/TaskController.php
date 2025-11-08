@@ -119,7 +119,7 @@ class TaskController extends Controller
     {
         Gate::authorize('view', $task);
 
-        $task->load(['project', 'taskStatus', 'taskPriority']);
+        $task->load(['project', 'taskStatus', 'taskPriority', 'comments.user']);
 
         return Inertia::render('Tasks/Show', [
             'task' => $task,

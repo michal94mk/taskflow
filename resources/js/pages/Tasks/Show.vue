@@ -8,9 +8,22 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Pencil, Trash2, Calendar, FolderOpen } from 'lucide-vue-next';
+import RichTextEditor from '@/components/RichTextEditor.vue';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { ArrowLeft, Pencil, Trash2, Calendar, FolderOpen, MessageSquare, Send } from 'lucide-vue-next';
+import { ref } from 'vue';
 import type { BreadcrumbItem } from '@/types';
+
+interface Comment {
+    id: number;
+    content: string;
+    created_at: string;
+    updated_at: string;
+    user: {
+        id: number;
+        name: string;
+    };
+}
 
 interface Task {
     id: number;
@@ -30,6 +43,7 @@ interface Task {
         name: string;
         color: string;
     };
+    comments?: Comment[];
 }
 
 interface Props {
@@ -68,6 +82,66 @@ const deleteTask = () => {
     if (confirm('Are you sure you want to delete this task?')) {
         router.delete(`/tasks/${props.task.id}`);
     }
+};
+
+// Comments
+const page = usePage();
+const currentUserId = page.props.auth?.user?.id;
+
+const commentForm = useForm({
+    content: '',
+});
+
+const editingCommentId = ref<number | null>(null);
+const editForm = useForm({
+    content: '',
+});
+
+const submitComment = () => {
+    commentForm.post(`/tasks/${props.task.id}/comments`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            commentForm.reset();
+        },
+    });
+};
+
+const startEdit = (comment: Comment) => {
+    editingCommentId.value = comment.id;
+    editForm.content = comment.content;
+};
+
+const cancelEdit = () => {
+    editingCommentId.value = null;
+    editForm.reset();
+};
+
+const updateComment = (commentId: number) => {
+    editForm.patch(`/comments/${commentId}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            editingCommentId.value = null;
+            editForm.reset();
+        },
+    });
+};
+
+const deleteComment = (commentId: number) => {
+    if (confirm('Are you sure you want to delete this comment?')) {
+        router.delete(`/comments/${commentId}`, {
+            preserveScroll: true,
+        });
+    }
+};
+
+const formatDate = (date: string) => {
+    return new Date(date).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 };
 </script>
 
@@ -168,6 +242,106 @@ const deleteTask = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            <!-- Comments Section -->
+            <Card>
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <MessageSquare class="h-5 w-5" />
+                        Comments ({{ task.comments?.length || 0 }})
+                    </CardTitle>
+                </CardHeader>
+                <CardContent class="space-y-6">
+                    <!-- Add Comment Form -->
+                    <form @submit.prevent="submitComment" class="space-y-4">
+                        <RichTextEditor
+                            v-model="commentForm.content"
+                            placeholder="Write a comment..."
+                        />
+                        <div class="flex justify-end">
+                            <Button type="submit" :disabled="commentForm.processing || !commentForm.content">
+                                <Send class="mr-2 h-4 w-4" />
+                                {{ commentForm.processing ? 'Posting...' : 'Post Comment' }}
+                            </Button>
+                        </div>
+                    </form>
+
+                    <!-- Comments List -->
+                    <div v-if="task.comments && task.comments.length > 0" class="space-y-4">
+                        <div
+                            v-for="comment in task.comments"
+                            :key="comment.id"
+                            class="border rounded-lg p-4 space-y-3"
+                        >
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="font-semibold">{{ comment.user.name }}</p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ formatDate(comment.created_at) }}
+                                        <span v-if="comment.updated_at !== comment.created_at">
+                                            (edited)
+                                        </span>
+                                    </p>
+                                </div>
+                                <div v-if="comment.user.id === currentUserId" class="flex gap-2">
+                                    <Button
+                                        v-if="editingCommentId !== comment.id"
+                                        variant="ghost"
+                                        size="sm"
+                                        @click="startEdit(comment)"
+                                    >
+                                        <Pencil class="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        @click="deleteComment(comment.id)"
+                                    >
+                                        <Trash2 class="h-3 w-3 text-red-500" />
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <!-- Edit Mode -->
+                            <div v-if="editingCommentId === comment.id" class="space-y-3">
+                                <RichTextEditor
+                                    v-model="editForm.content"
+                                    placeholder="Edit comment..."
+                                />
+                                <div class="flex gap-2 justify-end">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        @click="cancelEdit"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        :disabled="editForm.processing"
+                                        @click="updateComment(comment.id)"
+                                    >
+                                        {{ editForm.processing ? 'Saving...' : 'Save' }}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <!-- View Mode -->
+                            <div
+                                v-else
+                                class="prose prose-sm max-w-none dark:prose-invert"
+                                v-html="comment.content"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div v-else class="text-center py-8 text-muted-foreground">
+                        <MessageSquare class="h-12 w-12 mx-auto mb-2 opacity-50" />
+                        <p>No comments yet. Be the first to comment!</p>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AppLayout>
 </template>

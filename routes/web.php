@@ -18,6 +18,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Kanban Board
     Route::get('kanban', [App\Http\Controllers\KanbanController::class, 'index'])->name('kanban.index');
     Route::patch('kanban/{task}/status', [App\Http\Controllers\KanbanController::class, 'updateStatus'])->name('kanban.updateStatus');
+    
+    // Comments
+    Route::post('tasks/{task}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
+    Route::patch('comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update');
+    Route::delete('comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
 });
 
 require __DIR__.'/settings.php';

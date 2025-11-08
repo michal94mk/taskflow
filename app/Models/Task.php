@@ -58,4 +58,9 @@ class Task extends Model
     {
         return $this->taskPriority?->color ?? 'gray';
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }
