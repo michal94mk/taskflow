@@ -34,15 +34,36 @@ class Project extends Model
 
     public function getProgressAttribute(): int
     {
-        $totalTasks = $this->tasks()->count();
+        // Use the cached tasks_count from withCount('tasks')
+        $totalTasks = $this->tasks_count ?? $this->tasks()->count();
+        
         if ($totalTasks === 0) {
             return 0;
         }
 
-        $completedTasks = $this->tasks()
+        // Use cached completed_tasks_count if available, otherwise query
+        $completedTasks = $this->completed_tasks_count ?? $this->tasks()
             ->whereHas('taskStatus', fn ($q) => $q->where('slug', 'completed'))
             ->count();
 
         return round(($completedTasks / $totalTasks) * 100);
+    }
+
+    /**
+     * Get the progress as decimal (0.0 - 1.0) for calculations
+     */
+    public function getProgressDecimalAttribute(): float
+    {
+        $totalTasks = $this->tasks_count ?? $this->tasks()->count();
+        
+        if ($totalTasks === 0) {
+            return 0.0;
+        }
+
+        $completedTasks = $this->completed_tasks_count ?? $this->tasks()
+            ->whereHas('taskStatus', fn ($q) => $q->where('slug', 'completed'))
+            ->count();
+
+        return $completedTasks / $totalTasks;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -62,5 +63,51 @@ class Task extends Model
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    // Query Scopes
+    public function scopeForUser(Builder $query, User $user): Builder
+    {
+        return $query->where('user_id', $user->id);
+    }
+
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->where('due_date', '<', now())
+            ->whereHas('taskStatus', fn ($q) => $q->where('slug', '!=', 'completed'));
+    }
+
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->whereHas('taskStatus', fn ($q) => $q->where('slug', 'completed'));
+    }
+
+    public function scopeInProgress(Builder $query): Builder
+    {
+        return $query->whereHas('taskStatus', fn ($q) => $q->where('slug', 'in_progress'));
+    }
+
+    public function scopeByProject(Builder $query, int $projectId): Builder
+    {
+        return $query->where('project_id', $projectId);
+    }
+
+    public function scopeByStatus(Builder $query, int $statusId): Builder
+    {
+        return $query->where('task_status_id', $statusId);
+    }
+
+    public function scopeByPriority(Builder $query, int $priorityId): Builder
+    {
+        return $query->where('task_priority_id', $priorityId);
+    }
+
+    public function scopeSearch(Builder $query, string $search): Builder
+    {
+        $sanitized = str_replace(['%', '_'], ['\%', '\_'], $search);
+        return $query->where(function ($q) use ($sanitized) {
+            $q->where('title', 'like', "%{$sanitized}%")
+              ->orWhere('description', 'like', "%{$sanitized}%");
+        });
     }
 }
