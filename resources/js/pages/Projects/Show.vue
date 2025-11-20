@@ -173,7 +173,7 @@ const deleteProject = () => {
                                 </CardDescription>
                             </div>
                             <Button size="sm" as-child>
-                                <Link href="#">
+                                <Link :href="`/tasks/create?project_id=${project.id}`">
                                     <Plus class="mr-2 h-4 w-4" />
                                     Add Task
                                 </Link>

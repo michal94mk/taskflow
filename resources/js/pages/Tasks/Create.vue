@@ -29,10 +29,14 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Get project_id from URL query parameter
+const urlParams = new URLSearchParams(window.location.search);
+const preselectedProjectId = urlParams.get('project_id');
+
 const form = useForm({
     title: '',
     description: '',
-    project_id: '',
+    project_id: preselectedProjectId || '',
     task_status_id: props.statuses[0]?.id.toString() || '',
     task_priority_id: props.priorities[1]?.id.toString() || '', // Medium by default
     due_date: '',
