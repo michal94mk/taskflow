@@ -12,9 +12,13 @@ class SearchController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate([
+            'q' => 'nullable|string|max:255',
+        ]);
+
         $query = $request->input('q', '');
         
-        if (empty($query)) {
+        if (empty(trim($query))) {
             return response()->json([
                 'tasks' => [],
                 'projects' => [],
@@ -24,11 +28,14 @@ class SearchController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Sanitize search query to prevent LIKE wildcards exploitation
+        $sanitizedQuery = str_replace(['%', '_'], ['\%', '\_'], $query);
+
         // Search tasks
         $tasks = Task::where('user_id', $user->id)
-            ->where(function ($q) use ($query) {
-                $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%");
+            ->where(function ($q) use ($sanitizedQuery) {
+                $q->where('title', 'like', "%{$sanitizedQuery}%")
+                  ->orWhere('description', 'like', "%{$sanitizedQuery}%");
             })
             ->with(['project', 'taskStatus', 'taskPriority'])
             ->limit(5)
@@ -46,9 +53,9 @@ class SearchController extends Controller
 
         // Search projects
         $projects = Project::where('user_id', $user->id)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%");
+            ->where(function ($q) use ($sanitizedQuery) {
+                $q->where('name', 'like', "%{$sanitizedQuery}%")
+                  ->orWhere('description', 'like', "%{$sanitizedQuery}%");
             })
             ->limit(5)
             ->get()
