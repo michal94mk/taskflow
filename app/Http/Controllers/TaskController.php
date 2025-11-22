@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskPriority;
@@ -22,27 +24,27 @@ class TaskController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $query = Task::where('user_id', $user->id)
+        $query = Task::forUser($user)
             ->with(['project', 'taskStatus', 'taskPriority']);
 
         // Filter by project
-        if ($request->has('project_id') && $request->project_id) {
-            $query->where('project_id', $request->project_id);
+        if ($request->filled('project_id')) {
+            $query->byProject($request->project_id);
         }
 
         // Filter by status
-        if ($request->has('status_id') && $request->status_id) {
-            $query->where('task_status_id', $request->status_id);
+        if ($request->filled('status_id')) {
+            $query->byStatus($request->status_id);
         }
 
         // Filter by priority
-        if ($request->has('priority_id') && $request->priority_id) {
-            $query->where('task_priority_id', $request->priority_id);
+        if ($request->filled('priority_id')) {
+            $query->byPriority($request->priority_id);
         }
 
         // Search
-        if ($request->has('search') && $request->search) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            $query->search($request->search);
         }
 
         $tasks = $query->latest()->paginate(15);
@@ -83,29 +85,11 @@ class TaskController extends Controller
     /**
      * Store a newly created task in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request)
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'project_id' => 'required|exists:projects,id',
-            'task_status_id' => 'required|exists:task_statuses,id',
-            'task_priority_id' => 'required|exists:task_priorities,id',
-            'due_date' => 'nullable|date',
-        ]);
-
-        // Verify project belongs to user
-        $project = Project::findOrFail($validated['project_id']);
-        if ($project->user_id !== $user->id) {
-            abort(403, 'Unauthorized');
-        }
-
         $task = Task::create([
-            ...$validated,
-            'user_id' => $user->id,
+            ...$request->validated(),
+            'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('tasks.show', $task)
@@ -151,26 +135,11 @@ class TaskController extends Controller
     /**
      * Update the specified task in storage.
      */
-    public function update(Request $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task)
     {
         Gate::authorize('update', $task);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'project_id' => 'required|exists:projects,id',
-            'task_status_id' => 'required|exists:task_statuses,id',
-            'task_priority_id' => 'required|exists:task_priorities,id',
-            'due_date' => 'nullable|date',
-        ]);
-
-        // Verify project belongs to user
-        $project = Project::findOrFail($validated['project_id']);
-        if ($project->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized');
-        }
-
-        $task->update($validated);
+        $task->update($request->validated());
 
         return redirect()->route('tasks.show', $task)
             ->with('success', 'Task updated successfully.');

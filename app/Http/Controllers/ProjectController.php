@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
@@ -39,22 +40,11 @@ class ProjectController extends Controller
     /**
      * Store a newly created project in storage.
      */
-    public function store(Request $request)
+    public function store(StoreProjectRequest $request)
     {
-        /** @var User $user */
-        $user = auth()->user();
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,on_hold,completed,cancelled',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
         $project = Project::create([
-            ...$validated,
-            'user_id' => $user->id,
+            ...$request->validated(),
+            'user_id' => auth()->id(),
         ]);
 
         return redirect()->route('projects.show', $project)
@@ -94,19 +84,11 @@ class ProjectController extends Controller
     /**
      * Update the specified project in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
         Gate::authorize('update', $project);
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,on_hold,completed,cancelled',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        $project->update($validated);
+        $project->update($request->validated());
 
         return redirect()->route('projects.show', $project)
             ->with('success', 'Project updated successfully.');
