@@ -51,8 +51,8 @@ class TaskController extends Controller
 
         // Get filter options
         $projects = Project::where('user_id', $user->id)->get(['id', 'name']);
-        $statuses = TaskStatus::all(['id', 'name', 'color']);
-        $priorities = TaskPriority::all(['id', 'name', 'color']);
+        $statuses = TaskStatus::getCached()->map(fn($s) => ['id' => $s->id, 'name' => $s->name, 'color' => $s->color]);
+        $priorities = TaskPriority::getCached()->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'color' => $p->color]);
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
@@ -72,8 +72,8 @@ class TaskController extends Controller
         $user = Auth::user();
 
         $projects = Project::where('user_id', $user->id)->get(['id', 'name']);
-        $statuses = TaskStatus::all(['id', 'name', 'color']);
-        $priorities = TaskPriority::all(['id', 'name', 'color']);
+        $statuses = TaskStatus::getCached()->map(fn($s) => ['id' => $s->id, 'name' => $s->name, 'color' => $s->color]);
+        $priorities = TaskPriority::getCached()->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'color' => $p->color]);
 
         return Inertia::render('Tasks/Create', [
             'projects' => $projects,
@@ -121,8 +121,8 @@ class TaskController extends Controller
         $user = Auth::user();
 
         $projects = Project::where('user_id', $user->id)->get(['id', 'name']);
-        $statuses = TaskStatus::all(['id', 'name', 'color']);
-        $priorities = TaskPriority::all(['id', 'name', 'color']);
+        $statuses = TaskStatus::getCached()->map(fn($s) => ['id' => $s->id, 'name' => $s->name, 'color' => $s->color]);
+        $priorities = TaskPriority::getCached()->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'color' => $p->color]);
 
         return Inertia::render('Tasks/Edit', [
             'task' => $task,

@@ -24,8 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update');
     Route::delete('comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
     
-    // Search
-    Route::get('search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
+    // Search (with rate limiting: 30 requests per minute)
+    Route::get('search', [App\Http\Controllers\SearchController::class, 'index'])
+        ->middleware('throttle:30,1')
+        ->name('search');
 });
 
 require __DIR__.'/settings.php';
