@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\User;
@@ -19,16 +20,22 @@ class KanbanController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Get all statuses
-        $statuses = TaskStatus::orderBy('id')->get();
+        // Get all statuses (cached)
+        $statuses = TaskStatus::getCached();
 
-        // Get tasks grouped by status
+        // Get tasks grouped by status using Query Scopes
         $tasksByStatus = [];
         foreach ($statuses as $status) {
-            $tasks = Task::where('user_id', $user->id)
-                ->where('task_status_id', $status->id)
-                ->with(['project', 'taskPriority'])
-                ->orderBy('created_at', 'desc')
+            $query = Task::forUser($user)
+                ->byStatus($status->id);
+
+            // Apply project filter if provided
+            if ($request->filled('project_id')) {
+                $query->byProject($request->project_id);
+            }
+
+            $tasks = $query->with(['project', 'taskPriority'])
+                ->latest()
                 ->get();
 
             $tasksByStatus[] = [
@@ -50,7 +57,7 @@ class KanbanController extends Controller
     /**
      * Update task status (for drag & drop).
      */
-    public function updateStatus(Request $request, Task $task)
+    public function updateStatus(UpdateTaskStatusRequest $request, Task $task)
     {
         /** @var User $user */
         $user = Auth::user();
@@ -60,11 +67,7 @@ class KanbanController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        $validated = $request->validate([
-            'task_status_id' => 'required|exists:task_statuses,id',
-        ]);
-
-        $task->update($validated);
+        $task->update($request->validated());
 
         return back();
     }

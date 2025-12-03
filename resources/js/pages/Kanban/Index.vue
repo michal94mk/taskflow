@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Plus, Eye, Filter } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import draggable from 'vuedraggable';
 import type { BreadcrumbItem } from '@/types';
 
@@ -73,18 +73,29 @@ const columns = ref<TasksByStatus[]>(
     }))
 );
 
+// Update columns when tasksByStatus changes (after filtering)
+watch(() => props.tasksByStatus, (newTasksByStatus) => {
+    columns.value = newTasksByStatus.map(column => ({
+        ...column,
+        tasks: [...column.tasks],
+    }));
+}, { deep: true });
+
 const applyFilter = () => {
     router.get('/kanban', {
         project_id: selectedProject.value,
     }, {
-        preserveState: true,
         preserveScroll: true,
+        only: ['tasksByStatus', 'filter'],
     });
 };
 
 const clearFilter = () => {
     selectedProject.value = undefined;
-    router.get('/kanban');
+    router.get('/kanban', {}, {
+        preserveScroll: true,
+        only: ['tasksByStatus', 'filter'],
+    });
 };
 
 const getPriorityColor = (color: string) => {
